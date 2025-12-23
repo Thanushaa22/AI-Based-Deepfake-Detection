@@ -1,5 +1,6 @@
 import sys
 import os
+import gdown
 
 # Allow imports from project root
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -19,21 +20,36 @@ from gradcam_efficientnet import GradCAM
 # App & Paths
 # -------------------------
 app = Flask(__name__)
+
 UPLOAD_DIR = "static/uploads"
 RESULT_DIR = "static/results"
+MODEL_DIR = "../models"
+MODEL_PATH = os.path.join(MODEL_DIR, "efficientnet_deepfake.pth")
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(RESULT_DIR, exist_ok=True)
+os.makedirs(MODEL_DIR, exist_ok=True)
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 IMAGE_SIZE = 224
 
 # -------------------------
+# Download Model if Missing
+# -------------------------
+MODEL_URL = "https://drive.google.com/uc?id=1luWShga3o0VRiDt55X-yrSBRjn7ZOwxU"
+
+def download_model():
+    if not os.path.exists(MODEL_PATH):
+        print("🔽 Downloading model from Google Drive...")
+        gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+
+download_model()
+
+# -------------------------
 # Load Model
 # -------------------------
 model = timm.create_model("efficientnet_b0", pretrained=False, num_classes=2)
-model.load_state_dict(
-    torch.load("../models/efficientnet_deepfake.pth", map_location=DEVICE)
-)
+model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 model.eval().to(DEVICE)
 
 gradcam = GradCAM(model, model.conv_head)
@@ -52,9 +68,7 @@ transform = transforms.Compose([
 # -------------------------
 def analyze_video(video_path):
     cap = cv2.VideoCapture(video_path)
-
     fake_frames = 0
-    real_frames = 0
     total = 0
 
     while True:
@@ -68,15 +82,10 @@ def analyze_video(video_path):
         x = transform(img).unsqueeze(0).to(DEVICE)
 
         with torch.no_grad():
-            logits = model(x)
-            probs = F.softmax(logits, dim=1)
+            probs = F.softmax(model(x), dim=1)
 
-        fake_prob = probs[0][1].item()
-
-        if fake_prob >= 0.65:
+        if probs[0][1].item() >= 0.65:
             fake_frames += 1
-        else:
-            real_frames += 1
 
     cap.release()
 
@@ -118,8 +127,7 @@ def index():
             x = transform(img).unsqueeze(0).to(DEVICE)
 
             with torch.no_grad():
-                logits = model(x)
-                probs = F.softmax(logits, dim=1)
+                probs = F.softmax(model(x), dim=1)
 
             fake_prob = probs[0][1].item()
             real_prob = probs[0][0].item()
@@ -154,7 +162,7 @@ def index():
     )
 
 # -------------------------
-# Run App
+# Run App (Render Compatible)
 # -------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
