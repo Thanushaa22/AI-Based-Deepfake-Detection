@@ -15,9 +15,6 @@ This project detects AI-generated deepfake images and videos using
 - Trained on Deepfake image datasets
 - Softmax-based classification
 
-## 🚀 Live Demo
-👉 https://huggingface.co/spaces/Thanusha22/ai-deepfake-detection
-
 ## 🛠 Tech Stack
 - Python
 - PyTorch
