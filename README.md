@@ -30,4 +30,4 @@ This project detects AI-generated deepfake images and videos using
 
 ⭐ If you like this project
 
-Give it a ⭐ on GitHub and feel free to fork or contribute!
+Don’t forget to give it a ⭐ on GitHub — contributions and forks are welcome!
