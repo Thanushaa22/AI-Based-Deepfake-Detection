@@ -29,5 +29,4 @@ This project detects AI-generated deepfake images and videos using
 <img width="1366" height="728" alt="Screenshot (218)" src="https://github.com/user-attachments/assets/c9f98ae3-bb12-49b5-93c7-e8c2cf296c23" />
 
 ⭐ If you like this project
-
 Don’t forget to give it a ⭐ on GitHub — contributions and forks are welcome!
